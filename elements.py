@@ -136,10 +136,10 @@ class OR(SchemElement):
     
     def update(self):
         if self.inputs['IN1'] == 'x':
-            self.outputs['OUT'] = 'x'
+            self.outputs['OUT'] = 0
             return
         if self.inputs['IN2'] == 'x':
-            self.outputs['OUT'] = 'x'
+            self.outputs['OUT'] = 0
             return
         
         self.outputs['OUT'] = int(self.inputs['IN1']) | int(self.inputs['IN2'])
