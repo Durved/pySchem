@@ -1,3 +1,1 @@
 # pySchem
-
-## discriptionапвап
