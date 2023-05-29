@@ -19,6 +19,17 @@ class Circuit:
         for v in self.pins.values():
             v.create_pin()
 
+    def delete(self):
+        if self.id in Circuit.inputs:
+            Circuit.inputs.remove(self.id)
+        if self.id in Circuit.queue:
+            Circuit.queue.remove(self.id)
+        Circuit.circuits.pop(self.id)
+        self.figure.canvas.delete(self.id)
+        for v in self.pins.values():
+            v.delete()
+
+
     def simulate():
         Circuit.queue = [i for i in Circuit.inputs]
         for i in Circuit.queue:
@@ -40,6 +51,8 @@ class Circuit:
         for v in self.pins.values():
             v.update()
 
+    
+ 
 
 class Pin:
 
@@ -64,12 +77,20 @@ class Pin:
 
     def update(self):
         for i in self.connections:
+            if i not in Pin.pins:
+                self.connections.remove(i)
+                return
             Pin.pins[i].state = self.state
             if Pin.pins[i].id not in Circuit.queue:
                 Circuit.queue.append(Pin.pins[i].id)
 
     def create_pin(self):
         self.canvas.create_oval(self.x-4, self.y-4, self.x+4, self.y+4, outline='black', fill='black', tags=(self.id, 'pin', self.name))
+
+    def delete(self):
+        for i in self.wires:
+            Wire.wires[i].delete()
+        Pin.pins.pop(self.name)
 
     def move(self, x, y):
         self.x = x + self.dx
@@ -97,8 +118,14 @@ class Wire:
         x1, y1 = Pin.pins[self.pin2].x, Pin.pins[self.pin2].y
         self.canvas.create_line(x0, y0, x1, y1, tags=(self.id, 'wire'))
 
+    def delete(self):
+        Wire.wires.pop(self.id)
+        self.canvas.delete(self.id)
+        Pin.pins[self.pin1].wires.remove(self.id)
+        Pin.pins[self.pin2].wires.remove(self.id)
+
     def move(self):
-            self.canvas.coords(self.id, Pin.pins[self.pin1].x, Pin.pins[self.pin1].y, Pin.pins[self.pin2].x, Pin.pins[self.pin2].y)
+        self.canvas.coords(self.id, Pin.pins[self.pin1].x, Pin.pins[self.pin1].y, Pin.pins[self.pin2].x, Pin.pins[self.pin2].y)
 
 
 class Figure:
@@ -116,14 +143,14 @@ class Figure:
             if k == 'rect':
                 x0, y0 = x+v[1], y+v[2]
                 x1, y1 = x0+v[3], y0+v[4]
-                self.canvas.create_rectangle(x0, y0, x1, y1, outline='black', fill='white', tags=self.id)
+                self.canvas.create_rectangle(x0, y0, x1, y1, outline='black', fill='white', tags=(self.id, 'circ'))
             elif k == 'oval':
                 x0, y0 = x+v[1], y+v[1]
                 x1, y1 = x0+v[3], y0+v[4]
-                self.canvas.create_oval(x0, y0, x1, y1, outline='black', fill='white', tags=self.id)
+                self.canvas.create_oval(x0, y0, x1, y1, outline='black', fill='white', tags=(self.id, 'circ'))
             elif k == 'label':
                 x0, y0 = x+v[1], y+v[2]
-                self.canvas.create_text(x0, y0, text=v[4], tags=(self.id, f'{self.id}_label_{v[3]}'))
+                self.canvas.create_text(x0, y0, text=v[4], tags=(self.id, 'circ',  f'{self.id}_label_{v[3]}'))
     
     def edit_label(self, label_id, text):
         self.canvas.itemconfigure(f'{self.id}_label_{label_id}', text=text)
@@ -132,3 +159,4 @@ class Figure:
         self.x = x 
         self.y = y
         self.canvas.moveto(self.id, x, y)
+

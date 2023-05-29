@@ -1,10 +1,10 @@
 from tkinter import *
 from circuit import Circuit, Pin, Wire
-from elements import Input, Output, AND, OR, XOR, NOT, Triger
+from elements import Input, Output, AND, OR, XOR, NOT, Triger, Counter
 
 class App(Tk):
     
-    elements = {'Вход': Input, 'Выход': Output, 'И': AND, 'ИЛИ': OR, 'Исключающее ИЛИ': XOR, 'НЕ': NOT, 'Триггер': Triger}
+    elements = {'Вход': Input, 'Выход': Output, 'И': AND, 'ИЛИ': OR, 'Исключающее ИЛИ': XOR, 'НЕ': NOT, 'Триггер': Triger, 'Счётчик': Counter}
 
     def __init__(self):
         super().__init__()
@@ -27,12 +27,18 @@ class App(Tk):
 
         self.blueprint = Canvas(self)
         self.blueprint.grid(row=0, column=1, rowspan=2, sticky=NSEW)
+        self.blueprint.tag_lower('wire')
         self.after(10, self.update_schem)
         
     def update_schem(self):
         Circuit.simulate()
         self.after(10, self.update_schem)
 
+
+
+#############################################################
+# Setup element
+#############################################################
 
     def make_element(self, select):
         new_element = self.elements[select](self.blueprint, -100, -100)
@@ -41,12 +47,37 @@ class App(Tk):
         self.blueprint.bind('<1>', self.deselect)
         self.selected_element = new_element
 
+
+
+#############################################################
+# Delete element
+#############################################################
+
+    def delete_element(self, event):
+        group = self.blueprint.gettags(CURRENT)
+        if len(group) == 0:
+            return
+        
+        Circuit.circuits[group[0]].delete()
+
+
+
+##############################################################
+# Use element
+##############################################################
+
     def click_element(self, event):
         group = self.blueprint.gettags(CURRENT)
         if len(group) == 0:
             return
         
         Circuit.circuits[group[0]].click()
+
+
+
+##############################################################
+# Drag and drop
+##############################################################
 
     def select_element(self, event):
         group = self.blueprint.gettags(CURRENT)
@@ -66,6 +97,10 @@ class App(Tk):
         self.selected_element = None
         self.blueprint.unbind('<Motion>')
 
+
+##############################################################
+# Wire tool
+##############################################################
 
     def wire_start(self, event):
         group = self.blueprint.gettags(CURRENT)
@@ -109,6 +144,11 @@ class App(Tk):
         self.blueprint.bind('<1>', self.wire_start)
             
 
+
+####################################################################
+# Tools/elements select
+####################################################################
+
     def select_tool(self, event):
         if len(self.tool_box.curselection()) == 0:
             return
@@ -118,6 +158,7 @@ class App(Tk):
         self.blueprint.unbind('<3>')
         if select == 'Выделение':
             self.blueprint.bind('<1>', self.select_element)
+            self.blueprint.bind('<3>', self.delete_element)
         elif select == 'Палец':
             self.blueprint.bind('<1>', self.click_element)
             self.blueprint.config(cursor='hand2')

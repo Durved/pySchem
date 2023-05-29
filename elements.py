@@ -31,7 +31,7 @@ class Output(Circuit):
         ]
     
     def calc(self):
-        self.figure.edit_label('state', self.pins['IN'].state)
+        self.figure.edit_label('state', bin(self.pins['IN'].state)[2:])
 
 class AND(Circuit):
 
@@ -108,22 +108,3 @@ class NOT(Circuit):
             return
         
         self.pins['OUT'].state = not int(self.pins['IN'].state)
-
-class Triger(Circuit):
-
-    def __init__(self, canvas, x, y):
-        super().__init__(canvas, x, y)
-        self.state = 0
-        self.pins['D'] = Pin(self.id, 'D', 'IN', canvas, 0, 10)
-        self.pins['C'] = Pin(self.id, 'C', 'IN', canvas, 0, 30)
-        self.pins['OUT'] = Pin(self.id, 'OUT', 'OUT', canvas, 40, 20)
-
-        self.figure.parts = [
-            ('rect', 0, 0, 40, 40),
-            ('label', 20, 20, 'name', 'D'),
-        ]
-    
-    def calc(self):
-        if self.pins['C'].state == 1:
-            self.state = self.pins['D'].state
-        self.pins['OUT'].state = self.state
